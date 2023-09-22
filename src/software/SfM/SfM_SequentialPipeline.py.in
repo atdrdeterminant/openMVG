@@ -26,16 +26,27 @@ CAMERA_SENSOR_WIDTH_DIRECTORY = "@OPENMVG_SOFTWARE_SFM_SRC_DIR@" + "/../../openM
 import os
 import subprocess
 import sys
+from PIL import Image
 
 if len(sys.argv) < 3:
     print ("Usage %s image_dir output_dir" % sys.argv[0])
     sys.exit(1)
+
+def get_height_width(image_dir):
+  # input(os.listdir(image_dir))
+  file_list = [file for file in os.listdir(image_dir) if (file.endswith(".jpg") or file.endswith(".png"))] 
+  image_path = os.path.join(image_dir, file_list[0])
+  image = Image.open(image_path)
+  width, height = image.size
+  return max(width, height)
 
 input_dir = sys.argv[1]
 output_dir = sys.argv[2]
 matches_dir = os.path.join(output_dir, "matches")
 reconstruction_dir = os.path.join(output_dir, "reconstruction_sequential")
 camera_file_params = os.path.join(CAMERA_SENSOR_WIDTH_DIRECTORY, "sensor_width_camera_database.txt")
+focal_length = get_height_width(input_dir) * 0.85 #1.2 # 1.2 is a magic number, to change and find a way to retrieve the focal length from metadata
+
 
 print ("Using input dir  : ", input_dir)
 print ("      output_dir : ", output_dir)
@@ -47,8 +58,10 @@ if not os.path.exists(matches_dir):
   os.mkdir(matches_dir)
 
 print ("1. Intrinsics analysis")
-pIntrisics = subprocess.Popen( [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_SfMInit_ImageListing"),  "-i", input_dir, "-o", matches_dir, "-d", camera_file_params] )
+# pIntrisics = subprocess.Popen( [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_SfMInit_ImageListing"),  "-i", input_dir, "-o", matches_dir, "-d", camera_file_params] )
+pIntrisics = subprocess.Popen( [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_SfMInit_ImageListing"),  "-i", input_dir, "-o", matches_dir, "-d", camera_file_params,  "-f" , str(focal_length) ])
 pIntrisics.wait()
+
 
 print ("2. Compute features")
 pFeatures = subprocess.Popen( [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_ComputeFeatures"),  "-i", matches_dir+"/sfm_data.json", "-o", matches_dir, "-m", "SIFT"] )
