@@ -19,8 +19,12 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata; 
   libpng-dev \
   libtiff-dev \
   git \
+  python3-pip \
   python3-minimal; \
   apt-get autoclean && apt-get clean
+
+#Install python dependencies
+RUN pip3 install Pillow
 
 # Clone the openvMVG repo
 ADD . /opt/openMVG
