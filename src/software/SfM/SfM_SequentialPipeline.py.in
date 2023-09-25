@@ -27,7 +27,9 @@ import os
 import subprocess
 import sys
 from PIL import Image
+import multiprocessing
 
+num_cores = multiprocessing.cpu_count()
 if len(sys.argv) < 3:
     print ("Usage %s image_dir output_dir" % sys.argv[0])
     sys.exit(1)
@@ -64,7 +66,7 @@ pIntrisics.wait()
 
 
 print ("2. Compute features")
-pFeatures = subprocess.Popen( [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_ComputeFeatures"),  "-i", matches_dir+"/sfm_data.json", "-o", matches_dir, "-m", "SIFT"] )
+pFeatures = subprocess.Popen( [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_ComputeFeatures"),  "-i", matches_dir+"/sfm_data.json", "-o", matches_dir, "-m", "SIFT", "-n", num_cores] )
 pFeatures.wait()
 
 print ("3. Compute matching pairs")
